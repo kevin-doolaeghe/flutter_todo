@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_todo/data/database.dart';
 import 'package:flutter_todo/utils/dialog_box.dart';
-import 'package:flutter_todo/utils/todo.dart';
+import 'package:flutter_todo/data/todo.dart';
 import 'package:flutter_todo/utils/todo_tile.dart';
 
 class TodoPage extends StatefulWidget {
@@ -13,7 +14,7 @@ class TodoPage extends StatefulWidget {
 class _TodoPageState extends State<TodoPage> {
   TextEditingController textFieldController = TextEditingController();
 
-  List<Todo> todos = [];
+  final db = TodoDb();
 
   String errorMessage = "";
 
@@ -37,7 +38,7 @@ class _TodoPageState extends State<TodoPage> {
       message = "Task is missing..";
     } else {
       setState(() {
-        todos.add(Todo(textFieldController.text, false));
+        db.addTodo(Todo(textFieldController.text, false));
       });
       Navigator.of(context).pop();
     }
@@ -49,7 +50,13 @@ class _TodoPageState extends State<TodoPage> {
 
   void updateTaskStatus(isChecked, index) {
     setState(() {
-      todos[index].isComplete = isChecked;
+      db.updateTodo(index, isChecked);
+    });
+  }
+
+  void deleteTodo(index) {
+    setState(() {
+      db.deleteTodo(index);
     });
   }
 
@@ -65,12 +72,13 @@ class _TodoPageState extends State<TodoPage> {
         child: Padding(
           padding: const EdgeInsets.all(25.0),
           child: ListView.builder(
-            itemCount: todos.length,
+            itemCount: db.getTodos().length,
             itemBuilder: (context, index) {
               return TodoTile(
-                task: todos[index].task,
-                isComplete: todos[index].isComplete,
+                task: db.getTodos()[index].task,
+                isComplete: db.getTodos()[index].isComplete,
                 onChanged: (value) => updateTaskStatus(value, index),
+                onDelete: (context) => deleteTodo(index),
               );
             },
           ),
